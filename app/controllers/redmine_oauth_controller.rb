@@ -38,11 +38,9 @@ class RedmineOauthController < AccountController
   def try_to_login info
    params[:back_url] = session[:back_url]
    session.delete(:back_url)
-   userFirstName,userLastName = info["name"].split(' ') unless info['name'].nil?
-   userFirstName ||= info[:given_name]
-   userLastName ||= info[:family_name]
-   userLoginName = parse_email(info["email"])[:login]
-   userLoginName ||= [userFirstName, userLastName]*"."
+   userFirstName = info["given_name"]
+   userLastName = info["family_name"]
+   userLoginName = info["email"]
    user = User.find_or_initialize_by(login: userLoginName)
     if user.new_record?
       # Self-registration off
