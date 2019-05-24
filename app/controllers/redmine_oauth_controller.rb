@@ -5,8 +5,8 @@ class RedmineOauthController < AccountController
   include Helpers::MailHelper
   include Helpers::Checker
   def oauth_google
-    if Setting.plugin_redmine_omniauth_google[:oauth_authentification]
-      session[:back_url] = params[:back_url]
+    if Setting.plugin_redmine_omniauth_google['oauth_authentification']
+      session['back_url'] = params['back_url']
       redirect_to oauth_client.auth_code.authorize_url(:redirect_uri => oauth_google_callback_url, :scope => scopes)
     else
       password_authentication
@@ -14,29 +14,29 @@ class RedmineOauthController < AccountController
   end
 
   def oauth_google_callback
-    if params[:error]
-      flash[:error] = l(:notice_access_denied)
+    if params['error']
+      flash['error'] = l(:notice_access_denied)
       redirect_to signin_path
     else
-      token = oauth_client.auth_code.get_token(params[:code], :redirect_uri => oauth_google_callback_url)
-      result = token.get('https://www.googleapis.com/oauth2/v1/userinfo')
+      token = oauth_client.auth_code.get_token(params['code'], :redirect_uri => oauth_google_callback_url)
+      result = token.get('https://www.googleapis.com/oauth2/v2/userinfo')
       info = JSON.parse(result.body)
       if info && info["verified_email"]
         if allowed_domain_for?(info["email"])
           try_to_login info
         else
-          flash[:error] = l(:notice_domain_not_allowed, :domain => parse_email(info["email"])[:domain])
+          flash['error'] = l(:notice_domain_not_allowed, :domain => parse_email(info["email"])['domain'])
           redirect_to signin_path
         end
       else
-        flash[:error] = l(:notice_unable_to_obtain_google_credentials)
+        flash['error'] = l(:notice_unable_to_obtain_google_credentials)
         redirect_to signin_path
       end
     end
   end
 
   def try_to_login info
-   params[:back_url] = session[:back_url]
+   params['back_url'] = session['back_url']
    session.delete(:back_url)
    userFirstName = info["given_name"]
    userLastName = info["family_name"]
@@ -84,7 +84,7 @@ class RedmineOauthController < AccountController
   end
 
   def oauth_client
-    @client ||= OAuth2::Client.new(settings[:client_id], settings[:client_secret],
+    @client ||= OAuth2::Client.new(settings['client_id'], settings['client_secret'],
       :site => 'https://accounts.google.com',
       :authorize_url => '/o/oauth2/auth',
       :token_url => '/o/oauth2/token')
